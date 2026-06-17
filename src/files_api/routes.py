@@ -33,7 +33,7 @@ async def upload_file(
 ) -> PutFileResponse:
     """Upload a file."""
     file_content: bytes = await file.read()
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
 
     object_already_exists = object_already_exists = object_exists_in_s3(
         bucket_name=s3_bucket_name, object_key=file_path
@@ -64,7 +64,7 @@ async def list_files(
     query_params: GetFilesQueryParams = Depends(),
 ) -> GetFilesResponse:
     """List files with pagination."""
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     if query_params.page_token:
         files, next_page_token = fetch_s3_objects_using_page_token(
             bucket_name=s3_bucket_name,
@@ -100,7 +100,7 @@ async def get_file_metadata(
 
     Note: by convention, HEAD requests MUST NOT return a body in the response.
     """
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
     response.headers["Content-Type"] = get_object_response["ContentType"]
     response.headers["Content-Length"] = str(get_object_response["ContentLength"])
@@ -117,7 +117,7 @@ async def get_file(
     file_path: str,
 ):
     """Retrieve a file."""
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
     return StreamingResponse(
         content=get_object_response["Body"],
@@ -134,7 +134,7 @@ async def delete_file(
     """Delete a file.
 
     NOTE: DELETE requests MUST NOT return a body in the response."""
-    s3_bucket_name = request.app.state.s3_bucket_name
+    s3_bucket_name = request.app.state.settings.s3_bucket_name
     delete_s3_object(s3_bucket_name, object_key=file_path)
     response.status_code = status.HTTP_204_NO_CONTENT
     return response
