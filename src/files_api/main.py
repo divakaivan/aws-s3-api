@@ -4,10 +4,18 @@ from fastapi import (
     FastAPI,
     Response,
     UploadFile,
+    Depends,
     status,
 )
+from fastapi.responses import StreamingResponse
 from src.files_api.s3.write_objects import upload_s3_object
-from src.files_api.s3.read_objects import object_exists_in_s3
+from src.files_api.s3.delete_objects import delete_s3_object
+from src.files_api.s3.read_objects import (
+    fetch_s3_object,
+    fetch_s3_objects_metadata,
+    fetch_s3_objects_using_page_token,
+    object_exists_in_s3,
+)
 from pydantic import BaseModel
 
 S3_BUCKET_NAME = "some-bucket"
@@ -22,6 +30,25 @@ class FileMetadata(BaseModel):
     size_bytes: int
 
 
+# read (cRud)
+class GetFilesResponse(BaseModel):
+    files: list[FileMetadata]
+    next_page_token: str | None
+
+
+# read (cRud)
+class GetFilesQueryParams(BaseModel):
+    page_size: int = 10
+    directory: str | None = ""
+    page_token: str | None = None
+
+
+# delete (cruD)
+class DeleteFileResponse(BaseModel):
+    message: str
+
+
+# create/update (CrUd)
 class PutFileResponse(BaseModel):
     file_path: str
     message: str
@@ -59,10 +86,34 @@ async def upload_file(
 
 @APP.get("/files")
 async def list_files(
-    query_params=...,
-):
+    query_params: GetFilesQueryParams = Depends(),
+) -> GetFilesResponse:
     """List files with pagination."""
-    ...
+    if query_params.page_token:
+        files, next_page_token = fetch_s3_objects_using_page_token(
+            bucket_name=S3_BUCKET_NAME,
+            continuation_token=query_params.page_token,
+            max_keys=query_params.page_size,
+        )
+    else:
+        files, next_page_token = fetch_s3_objects_metadata(
+            bucket_name=S3_BUCKET_NAME,
+            prefix=query_params.directory,
+            max_keys=query_params.page_size,
+        )
+
+    file_metadata_objs = [
+        FileMetadata(
+            file_path=f"{item['Key']}",
+            last_modified=item["LastModified"],
+            size_bytes=item["Size"],
+        )
+        for item in files
+    ]
+    return GetFilesResponse(
+        files=file_metadata_objs,
+        next_page_token=next_page_token if next_page_token else None,
+    )
 
 
 @APP.head("/files/{file_path:path}")
@@ -71,7 +122,14 @@ async def get_file_metadata(file_path: str, response: Response) -> Response:
 
     Note: by convention, HEAD requests MUST NOT return a body in the response.
     """
-    return
+    get_object_response = fetch_s3_object(S3_BUCKET_NAME, object_key=file_path)
+    response.headers["Content-Type"] = get_object_response["ContentType"]
+    response.headers["Content-Length"] = str(get_object_response["ContentLength"])
+    response.headers["Last-Modified"] = get_object_response["LastModified"].strftime(
+        "%a, %d %b %Y %H:%M:%S GMT"
+    )
+    response.status_code = status.HTTP_200_OK
+    return response
 
 
 @APP.get("/files/{file_path:path}")
@@ -79,7 +137,11 @@ async def get_file(
     file_path: str,
 ):
     """Retrieve a file."""
-    ...
+    get_object_response = fetch_s3_object(S3_BUCKET_NAME, object_key=file_path)
+    return StreamingResponse(
+        content=get_object_response["Body"],
+        media_type=get_object_response["ContentType"],
+    )
 
 
 @APP.delete("/files/{file_path:path}")
@@ -90,7 +152,9 @@ async def delete_file(
     """Delete a file.
 
     NOTE: DELETE requests MUST NOT return a body in the response."""
-    return
+    delete_s3_object(S3_BUCKET_NAME, object_key=file_path)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
 
 
 if __name__ == "__main__":
