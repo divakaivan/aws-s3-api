@@ -1,8 +1,9 @@
+from tests.consts import TEST_BUCKET_NAME
+from src.files_api.main import create_app
 import botocore
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from src.files_api.main import APP
 
 TEST_FILE_PATH = "test.txt"
 TEST_FILE_CONTENT = b"Hello, world!"
@@ -11,7 +12,8 @@ TEST_FILE_CONTENT_TYPE = "text/plain"
 
 @pytest.fixture
 def client(mocked_aws) -> TestClient:
-    with TestClient(APP) as client:
+    app = create_app(s3_bucket_name=TEST_BUCKET_NAME)
+    with TestClient(app) as client:
         yield client
 
 

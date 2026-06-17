@@ -3,7 +3,7 @@
 set -e
 
 function run {
-    uv run uvicorn src.files_api.main:APP --reload
+    uv run uvicorn src.files_api.main:create_app --reload
 }
 
 function run-mock {
@@ -17,11 +17,12 @@ function run-mock {
     export AWS_SECRET_ACCESS_KEY="mock"
     export AWS_ACCESS_KEY_ID="mock"
     export AWS_REGION="us-east-1"
+    export S3_BUCKET_NAME="some-bucket"
 
-    aws --endpoint-url "$AWS_ENDPOINT_URL" s3 mb s3://some-bucket
+    aws --endpoint-url "$AWS_ENDPOINT_URL" s3 mb "s3://$S3_BUCKET_NAME"
     trap 'kill $MOTO_PID' EXIT
 
-    uv run uvicorn src.files_api.main:APP --reload
+    uv run uvicorn src.files_api.main:create_app --reload
     wait $MOTO_PID
 }
 
