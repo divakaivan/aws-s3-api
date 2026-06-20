@@ -1,7 +1,9 @@
 import os
-from pytest import fixture
+
 import boto3
 from moto import mock_aws
+from pytest import fixture
+
 from tests.consts import TEST_BUCKET_NAME
 
 

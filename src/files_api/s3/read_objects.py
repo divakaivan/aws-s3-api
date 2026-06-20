@@ -1,5 +1,5 @@
-from mypy_boto3_s3.type_defs import ListObjectsOutputTypeDef
 import boto3
+from mypy_boto3_s3.type_defs import ListObjectsOutputTypeDef
 
 try:
     from mypy_boto3_s3 import S3Client
