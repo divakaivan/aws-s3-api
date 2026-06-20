@@ -8,6 +8,9 @@
   "paths": {
     "/v1/files/{file_path}": {
       "put": {
+        "tags": [
+          "Files"
+        ],
         "summary": "Upload File",
         "description": "Upload a file.",
         "operationId": "upload_file_v1_files__file_path__put",
@@ -43,6 +46,16 @@
               }
             }
           },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PutFileResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -56,6 +69,9 @@
         }
       },
       "head": {
+        "tags": [
+          "Files"
+        ],
         "summary": "Get File Metadata",
         "description": "Retrieve file metadata.\n\nNote: by convention, HEAD requests MUST NOT return a body in the response.",
         "operationId": "get_file_metadata_v1_files__file_path__head",
@@ -77,7 +93,34 @@
               "application/json": {
                 "schema": {}
               }
+            },
+            "headers": {
+              "Content-Type": {
+                "description": "The [MIME type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types) of the file.",
+                "example": "text/plain",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Content-Length": {
+                "description": "The size of the file in bytes.",
+                "example": 512,
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "Last-Modified": {
+                "description": "The last modified date of the file.",
+                "example": "Thu, 01 Jan 2022 00:00:00 GMT",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
             }
+          },
+          "404": {
+            "description": "File not found for the given `file_path`."
           },
           "422": {
             "description": "Validation Error",
@@ -92,6 +135,9 @@
         }
       },
       "get": {
+        "tags": [
+          "Files"
+        ],
         "summary": "Get File",
         "description": "Retrieve a file.",
         "operationId": "get_file_v1_files__file_path__get",
@@ -108,12 +154,21 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "The file content.",
             "content": {
               "application/json": {
                 "schema": {}
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
+          },
+          "404": {
+            "description": "File not found for the given `file_path`."
           },
           "422": {
             "description": "Validation Error",
@@ -128,6 +183,9 @@
         }
       },
       "delete": {
+        "tags": [
+          "Files"
+        ],
         "summary": "Delete File",
         "description": "Delete a file.\n\nNOTE: DELETE requests MUST NOT return a body in the response.",
         "operationId": "delete_file_v1_files__file_path__delete",
@@ -151,6 +209,12 @@
               }
             }
           },
+          "404": {
+            "description": "File not found for the given `file_path`."
+          },
+          "204": {
+            "description": "File deleted successfully."
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -166,6 +230,9 @@
     },
     "/v1/files": {
       "get": {
+        "tags": [
+          "Files"
+        ],
         "summary": "List Files",
         "description": "List files with pagination.",
         "operationId": "list_files_v1_files_get",
@@ -254,16 +321,20 @@
         "properties": {
           "file_path": {
             "type": "string",
-            "title": "File Path"
+            "title": "File Path",
+            "description": "The path of the file.",
+            "example": "path/to/pyproject.toml"
           },
           "last_modified": {
             "type": "string",
             "format": "date-time",
-            "title": "Last Modified"
+            "title": "Last Modified",
+            "description": "The last modified date of the file."
           },
           "size_bytes": {
             "type": "integer",
-            "title": "Size Bytes"
+            "title": "Size Bytes",
+            "description": "The size of the file in bytes."
           }
         },
         "type": "object",
@@ -272,7 +343,8 @@
           "last_modified",
           "size_bytes"
         ],
-        "title": "FileMetadata"
+        "title": "FileMetadata",
+        "description": "Metadata of a file."
       },
       "GetFilesResponse": {
         "properties": {
@@ -300,7 +372,23 @@
           "files",
           "next_page_token"
         ],
-        "title": "GetFilesResponse"
+        "title": "GetFilesResponse",
+        "description": "Response model for `GET /v1/files`.",
+        "example": {
+          "files": [
+            {
+              "file_path": "path/to/pyproject.toml",
+              "last_modified": "2022-01-01T00:00:00Z",
+              "size_bytes": 512
+            },
+            {
+              "file_path": "path/to/Makefile",
+              "last_modified": "2022-01-01T00:00:00Z",
+              "size_bytes": 256
+            }
+          ],
+          "next_page_token": "next_page_token_example"
+        }
       },
       "HTTPValidationError": {
         "properties": {
@@ -319,11 +407,14 @@
         "properties": {
           "file_path": {
             "type": "string",
-            "title": "File Path"
+            "title": "File Path",
+            "description": "The path of the file.",
+            "example": "path/to/pyproject.toml"
           },
           "message": {
             "type": "string",
-            "title": "Message"
+            "title": "Message",
+            "description": "A message about the operation."
           }
         },
         "type": "object",
@@ -331,7 +422,8 @@
           "file_path",
           "message"
         ],
-        "title": "PutFileResponse"
+        "title": "PutFileResponse",
+        "description": "Response model for `PUT /v1/files/:file_path`."
       },
       "ValidationError": {
         "properties": {

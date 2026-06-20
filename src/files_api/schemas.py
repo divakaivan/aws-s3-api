@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # constants.py
 DEFAULT_GET_FILES_PAGE_SIZE = 10
@@ -12,26 +12,61 @@ DEFAULT_GET_FILES_DIRECTORY = ""
 
 # read (cRud)
 class FileMetadata(BaseModel):
-    file_path: str
-    last_modified: datetime
-    size_bytes: int
+    """Metadata of a file."""
+
+    file_path: str = Field(
+        description="The path of the file.",
+        json_schema_extra={"example": "path/to/pyproject.toml"},
+    )
+    last_modified: datetime = Field(description="The last modified date of the file.")
+    size_bytes: int = Field(description="The size of the file in bytes.")
 
 
 # read (cRud)
 class GetFilesResponse(BaseModel):
+    """Response model for `GET /v1/files`."""
+
     files: list[FileMetadata]
     next_page_token: str | None
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "files": [
+                    {
+                        "file_path": "path/to/pyproject.toml",
+                        "last_modified": "2022-01-01T00:00:00Z",
+                        "size_bytes": 512,
+                    },
+                    {
+                        "file_path": "path/to/Makefile",
+                        "last_modified": "2022-01-01T00:00:00Z",
+                        "size_bytes": 256,
+                    },
+                ],
+                "next_page_token": "next_page_token_example",
+            }
+        }
+    )
 
 
 # read (cRud)
 class GetFilesQueryParams(BaseModel):
+    """Query parameters for `GET /v1/files`."""
+
     page_size: int = Field(
         DEFAULT_GET_FILES_PAGE_SIZE,
         ge=DEFAULT_GET_FILES_MIN_PAGE_SIZE,
         le=DEFAULT_GET_FILES_MAX_PAGE_SIZE,
     )
-    directory: str = DEFAULT_GET_FILES_DIRECTORY
-    page_token: str | None = None
+    directory: str = Field(
+        DEFAULT_GET_FILES_DIRECTORY,
+        description="The directory to list files from.",
+    )
+    page_token: str | None = Field(
+        None,
+        description="The token for the next page.",
+    )
 
     @model_validator(mode="after")
     def check_params(self) -> Self:
@@ -48,10 +83,17 @@ class GetFilesQueryParams(BaseModel):
 
 # delete (cruD)
 class DeleteFileResponse(BaseModel):
+    """Response model for `DELETE /v1/files/:file_path`."""
+
     message: str
 
 
 # create/update (CrUd)
 class PutFileResponse(BaseModel):
-    file_path: str
-    message: str
+    """Response model for `PUT /v1/files/:file_path`."""
+
+    file_path: str = Field(
+        description="The path of the file.",
+        json_schema_extra={"example": "path/to/pyproject.toml"},
+    )
+    message: str = Field(description="A message about the operation.")
