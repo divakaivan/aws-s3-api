@@ -5,6 +5,8 @@ from src.files_api.schemas import (
     DEFAULT_GET_FILES_MAX_PAGE_SIZE,
     DEFAULT_GET_FILES_MIN_PAGE_SIZE,
 )
+from tests.consts import TEST_BUCKET_NAME
+from tests.utils import delete_s3_bucket
 
 
 def test_get_nonexistant_file(client: TestClient):
@@ -46,3 +48,11 @@ def test_get_files_page_token_is_mutually_exclusive_with_page_size_and_directory
     response = client.get("/files?page_token=token&page_size=10&directory=dir")
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
     assert "mutually exclusive" in str(response.json())
+
+
+def test_unforeseen_500_error(client: TestClient):
+    delete_s3_bucket(TEST_BUCKET_NAME)
+
+    response = client.get("/files")
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json() == {"detail": "Internal server error"}
