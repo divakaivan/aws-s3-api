@@ -5,6 +5,7 @@ from fastapi import (
     UploadFile,
     Depends,
     status,
+    HTTPException,
 )
 from fastapi.responses import StreamingResponse
 
@@ -115,9 +116,17 @@ async def get_file_metadata(
 async def get_file(
     request: Request,
     file_path: str,
-):
+) -> StreamingResponse:
     """Retrieve a file."""
     s3_bucket_name = request.app.state.settings.s3_bucket_name
+
+    object_exists = object_exists_in_s3(
+        bucket_name=s3_bucket_name, object_key=file_path
+    )
+    if not object_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
+        )
     get_object_response = fetch_s3_object(s3_bucket_name, object_key=file_path)
     return StreamingResponse(
         content=get_object_response["Body"],
