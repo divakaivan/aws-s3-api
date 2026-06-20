@@ -13,7 +13,7 @@ jobs:
       - run: git fetch --depth=1 origin ${{ github.base_ref }}
       - uses: oasdiff/oasdiff-action/breaking@v0
         with:
-          base: 'origin/${{ github.base_ref }}:openapi.yaml'
-          revision: 'HEAD:openapi.yaml'
+          base: 'origin/${{ github.base_ref }}:openapi.json'
+          revision: 'HEAD:openapi.json'
           fail-on: WARN
           github-token: ${{ github.token }}
