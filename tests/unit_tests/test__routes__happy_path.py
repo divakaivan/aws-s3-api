@@ -1,5 +1,3 @@
-import botocore
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
@@ -79,7 +77,7 @@ def test_delete_file(client: TestClient):
     )
 
     response = client.delete(f"/files/{TEST_FILE_PATH}")
-    assert response.status_code == 204
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    with pytest.raises(botocore.exceptions.ClientError):
-        response = client.get(f"/files/{TEST_FILE_PATH}")
+    response = client.get(f"/files/{TEST_FILE_PATH}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
