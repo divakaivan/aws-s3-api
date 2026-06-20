@@ -1,0 +1,19 @@
+name: oasdiff
+on:
+  pull_request:
+    branches: [ "main" ]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  breaking-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: git fetch --depth=1 origin ${{ github.base_ref }}
+      - uses: oasdiff/oasdiff-action/breaking@v0
+        with:
+          base: 'origin/${{ github.base_ref }}:openapi.yaml'
+          revision: 'HEAD:openapi.yaml'
+          fail-on: WARN
+          github-token: ${{ github.token }}
