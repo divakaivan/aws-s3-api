@@ -1,5 +1,5 @@
-from pydantic import Field
-from pydantic import BaseModel
+from typing import Self
+from pydantic import BaseModel, model_validator, Field
 from datetime import datetime
 
 # constants.py
@@ -31,6 +31,18 @@ class GetFilesQueryParams(BaseModel):
     )
     directory: str = DEFAULT_GET_FILES_DIRECTORY
     page_token: str | None = None
+
+    @model_validator(mode="after")
+    def check_params(self) -> Self:
+        if self.page_token:
+            get_files_query_params: dict = self.model_dump(exclude_unset=True)
+            page_size_set = "page_size" in get_files_query_params.keys()
+            directory_set = "directory" in get_files_query_params.keys()
+            if page_size_set or directory_set:
+                raise ValueError(
+                    "page_token is mutually exclusive with page_size and directory"
+                )
+        return self
 
 
 # delete (cruD)
