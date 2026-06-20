@@ -27,7 +27,7 @@ from src.files_api.schemas import (
 ROUTER = APIRouter()
 
 
-@ROUTER.put("/v1/files/{file_path:path}")
+@ROUTER.put("/v1/file/{file_path:path}")
 async def upload_file(
     request: Request, file_path: str, file: UploadFile, response: Response
 ) -> PutFileResponse:
