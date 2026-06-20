@@ -6,6 +6,7 @@ repos:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
+        exclude: ^openapi\.json$
       - id: check-toml
       - id: check-added-large-files
         args: ["--maxkb=500"]
@@ -18,3 +19,16 @@ repos:
       - id: ruff-check
         args: [ --fix ]
       - id: ruff-format
+  - repo: local
+    hooks:
+      - id: generate-and-diff-openapi-schema
+        name: Generate and Assert that OpenAPI Schema is up to date
+        entry: >-
+          uv run scripts/generate-openapi.py generate-and-diff
+            --existing-spec ./openapi.json
+            --output-spec ./openapi.json
+            --fail-on-diff
+        language: system
+        files: ^openapi\.json$|^src/.*\.py$
+        pass_filenames: false
+        always_run: false
