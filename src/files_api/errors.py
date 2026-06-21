@@ -1,3 +1,5 @@
+import traceback
+
 import pydantic
 from fastapi import (
     Request,
@@ -11,7 +13,9 @@ async def handle_broad_exceptions(request: Request, call_next):
     """Handle any exception that goes unhandled by a more specific exception handler."""
     try:
         return await call_next(request)
-    except Exception:
+    except Exception as err:
+        traceback.print_exc()
+        print(f"Error: {err}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error"},

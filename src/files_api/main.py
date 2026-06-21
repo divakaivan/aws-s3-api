@@ -14,6 +14,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(
         title="Files API",
         description="A simple API to manage files in S3",
+        docs_url="/",
+        root_path="/prod",
     )
     app.state.settings = settings
     app.include_router(ROUTER)
