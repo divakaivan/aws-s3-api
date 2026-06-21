@@ -16,10 +16,17 @@ dependencies = [
 [dependency-groups]
 dev = [
     "boto3-stubs[s3]>=1.43.29",
+    "mangum>=0.21.0",
     "moto[s3,server]>=5.2.2",
     "pre-commit>=4.6.0",
     "pytest>=9.1.0",
 ]
 
+[project.optional-dependencies]
+aws-lambda = ["mangum", "boto3-stubs[s3]>=1.43.29"]
+
 [tool.ruff.lint]
 select = ["I"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

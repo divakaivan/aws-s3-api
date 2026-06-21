@@ -10,10 +10,15 @@ from typing import (
     Union,
 )
 
+SCRIPTS_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPTS_DIR.parent
+SRC_DIR = REPO_ROOT / "src"
+sys.path.insert(0, str(SRC_DIR))
+
 from fastapi.openapi.utils import get_openapi
 
-from src.files_api.main import create_app
-from src.files_api.settings import Settings
+from files_api.main import create_app
+from files_api.settings import Settings
 
 
 @dataclass

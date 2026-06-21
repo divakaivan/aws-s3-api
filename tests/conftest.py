@@ -9,9 +9,11 @@ from pathlib import Path
 
 THIS_DIR = Path(__file__).parent
 TESTS_DIR_PARENT = (THIS_DIR / "..").resolve()
+SRC_DIR = (TESTS_DIR_PARENT / "src").resolve()
 
-# add the parent directory of tests/ to PYTHONPATH
-# so that we can use "from tests.<module> import ..." in our tests and fixtures
+# add the parent directory of tests/ and src/ to PYTHONPATH
+# so that we can use "from files_api..." and "from tests..." in our tests and fixtures
+sys.path.insert(0, str(SRC_DIR))
 sys.path.insert(0, str(TESTS_DIR_PARENT))
 
 # module import paths to python files containing fixtures

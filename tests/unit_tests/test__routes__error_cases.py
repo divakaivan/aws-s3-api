@@ -1,7 +1,7 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from src.files_api.schemas import (
+from files_api.schemas import (
     DEFAULT_GET_FILES_MAX_PAGE_SIZE,
     DEFAULT_GET_FILES_MIN_PAGE_SIZE,
 )

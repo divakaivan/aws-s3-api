@@ -1,6 +1,6 @@
 import boto3
 
-from src.files_api.s3.read_objects import (
+from files_api.s3.read_objects import (
     fetch_s3_objects_metadata,
     fetch_s3_objects_using_page_token,
     object_exists_in_s3,

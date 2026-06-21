@@ -1,13 +1,12 @@
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 from pydantic import ValidationError
 
-from src.files_api.errors import (
+from files_api.errors import (
     handle_broad_exceptions,
     handle_pydantic_validation_errors,
 )
-from src.files_api.routes import ROUTER
-from src.files_api.settings import Settings
+from files_api.routes import ROUTER
+from files_api.settings import Settings
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
