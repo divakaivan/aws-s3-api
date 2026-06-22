@@ -1,3 +1,4 @@
+import sys
 import traceback
 
 import pydantic
@@ -6,6 +7,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 
 # fastapi docs on middlewares: https://fastapi.tiangolo.com/tutorial/middleware/
@@ -14,8 +16,7 @@ async def handle_broad_exceptions(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as err:
-        traceback.print_exc()
-        print(f"Error: {err}")
+        logger.exception(err)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error"},
@@ -27,6 +28,7 @@ async def handle_pydantic_validation_errors(
     request: Request, exc: pydantic.ValidationError
 ) -> JSONResponse:
     errors = exc.errors()
+    logger.exception(exc)
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
 from files_api.errors import (
@@ -20,7 +21,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.include_router(ROUTER)
     app.add_exception_handler(
-        exc_class_or_status_code=ValidationError,
+        exc_class_or_status_code=RequestValidationError,
         handler=handle_pydantic_validation_errors,
     )
     app.middleware("http")(handle_broad_exceptions)
