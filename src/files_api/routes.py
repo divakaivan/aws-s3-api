@@ -85,6 +85,7 @@ async def list_files(
             prefix=query_params.directory,
             max_keys=query_params.page_size,
         )
+    logger.debug("query_params.page_token: {exists}", exists=query_params.page_token)
 
     file_metadata_objs = [
         FileMetadata(
@@ -94,6 +95,7 @@ async def list_files(
         )
         for item in files
     ]
+    logger.info("items returned: {count}", count=len(file_metadata_objs))
     return GetFilesResponse(
         files=file_metadata_objs,
         next_page_token=next_page_token if next_page_token else None,
