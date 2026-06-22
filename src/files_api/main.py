@@ -1,16 +1,17 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
 
 from files_api.errors import (
     handle_broad_exceptions,
     handle_pydantic_validation_errors,
 )
+from files_api.monitoring.logger import configure_logger
 from files_api.routes import ROUTER
 from files_api.settings import Settings
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
+    configure_logger()
     settings = settings or Settings()
     app = FastAPI(
         title="Files API",
@@ -19,6 +20,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         root_path="/prod",
     )
     app.state.settings = settings
+
     app.include_router(ROUTER)
     app.add_exception_handler(
         exc_class_or_status_code=RequestValidationError,

@@ -27,7 +27,7 @@ function run-mock {
     aws --endpoint-url "$AWS_ENDPOINT_URL" s3 mb "s3://$S3_BUCKET_NAME"
     trap 'kill $MOTO_PID' EXIT
 
-    export LOGURU_LEVEL="INFO"
+    export LOGURU_LEVEL="DEBUG"
     PYTHONPATH=src uv run uvicorn files_api.main:create_app --reload
     wait $MOTO_PID
 }
@@ -133,6 +133,33 @@ function clean {
         -o -name "*.DS_Store" \
         -not -path "*env/*" \
         -exec rm {} +
+}
+
+function set-local-aws-env-vars {
+    export AWS_PROFILE=mlops-club
+    export AWS_REGION=eu-west-1
+}
+
+function run-locust {
+    set-local-aws-env-vars
+    aws configure export-credentials --profile $AWS_PROFILE --format env >.env
+    docker compose \
+        --file docker-compose.yaml \
+        --file docker-compose.locust.yaml \
+        up \
+        --build
+}
+
+function run-docker {
+    set-local-aws-env-vars
+    aws configure export-credentials --profile $AWS_PROFILE --format env >.env
+    docker compose up --build
+}
+
+function help {
+    echo "$0 <task> <args>"
+    echo "Tasks:"
+    compgen -A function | cat -n
 }
 
 "$@"

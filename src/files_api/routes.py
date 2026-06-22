@@ -10,6 +10,7 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
+from files_api.route_handler import RouteHandler
 from files_api.s3.delete_objects import delete_s3_object
 from files_api.s3.read_objects import (
     fetch_s3_object,
@@ -25,7 +26,10 @@ from files_api.schemas import (
     PutFileResponse,
 )
 
-ROUTER = APIRouter(tags=["Files"])
+ROUTER = APIRouter(
+    tags=["Files"],
+    route_class=RouteHandler,
+)
 
 
 @ROUTER.put(
@@ -179,6 +183,7 @@ async def get_file(
     """Retrieve a file."""
     s3_bucket_name = request.app.state.settings.s3_bucket_name
 
+    logger.debug("fetching file from s3")
     object_exists = object_exists_in_s3(
         bucket_name=s3_bucket_name, object_key=file_path
     )
