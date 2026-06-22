@@ -27,6 +27,7 @@ function run-mock {
     aws --endpoint-url "$AWS_ENDPOINT_URL" s3 mb "s3://$S3_BUCKET_NAME"
     trap 'kill $MOTO_PID' EXIT
 
+    export LOGURU_LEVEL="INFO"
     PYTHONPATH=src uv run uvicorn files_api.main:create_app --reload
     wait $MOTO_PID
 }

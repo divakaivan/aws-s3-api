@@ -8,6 +8,7 @@ from fastapi import (
     status,
 )
 from fastapi.responses import StreamingResponse
+from loguru import logger
 
 from files_api.s3.delete_objects import delete_s3_object
 from files_api.s3.read_objects import (
@@ -44,6 +45,7 @@ async def upload_file(
     object_already_exists = object_already_exists = object_exists_in_s3(
         bucket_name=s3_bucket_name, object_key=file_path
     )
+    logger.debug("object_already_exists: {exists}", exists=object_already_exists)
     if object_already_exists:
         response_message = f"Existing file updated at path: /{file_path}"
         response.status_code = status.HTTP_200_OK
@@ -51,6 +53,7 @@ async def upload_file(
         response_message = f"New file uploaded at path: /{file_path}"
         response.status_code = status.HTTP_201_CREATED
 
+    logger.debug("trying to upload file to s3: {file_path}", file_path=file_path)
     upload_s3_object(
         bucket_name=s3_bucket_name,
         object_key=file_path,
@@ -58,10 +61,9 @@ async def upload_file(
         file_content=file_content,
     )
 
-    return PutFileResponse(
-        file_path=file_path,
-        message=response_message,
-    )
+    logger.info(response_message)
+
+    return PutFileResponse(file_path=file_path, message=response_message)
 
 
 @ROUTER.get("/v1/files")
