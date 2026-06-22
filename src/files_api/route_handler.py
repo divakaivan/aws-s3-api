@@ -22,10 +22,14 @@ class RouteHandler(APIRoute):
                 "route": self.path,
                 "method": request.method,
             }
-            with logger.contextualize(request=request_context):
-                log_request_info(request)
-                response: Response = await original_route_handler(request)
-                log_response_info(response)
-                return response
+            logger.configure(extra={"http": request_context})
+            # not thread safe, can only by done once. logger.contextualize is thread safe
+            # this will include logs for all statements after the entry logic of the route handler
+            # incl error handlers but because response info isnt logged, the log_response_info
+            # func is called in the errors.py
+            log_request_info(request)
+            response: Response = await original_route_handler(request)
+            log_response_info(response)
+            return response
 
         return route_handler
