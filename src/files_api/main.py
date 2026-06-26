@@ -5,6 +5,7 @@ from files_api.errors import (
     handle_broad_exceptions,
     handle_pydantic_validation_errors,
 )
+from files_api.monitoring.logger import inject_lambda_context__middleware
 from files_api.routes import ROUTER
 from files_api.settings import Settings
 
@@ -25,6 +26,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         handler=handle_pydantic_validation_errors,
     )
     app.middleware("http")(handle_broad_exceptions)
+    app.middleware("http")(inject_lambda_context__middleware)
 
     return app
 

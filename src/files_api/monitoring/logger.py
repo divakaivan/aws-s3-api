@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import traceback
+from uuid import uuid4
 
 from fastapi import Request, Response
 from loguru import logger
@@ -76,3 +77,35 @@ def log_response_info(response: Response):
         "headers": dict(response.headers.items()),
     }
     logger.debug("Response sent", http_response=response_info)
+
+
+async def inject_lambda_context__middleware(request: Request, call_next):
+    """Middleware to add Lambda context to FastAPI request scope."""
+    try:
+        # Get the Lambda context from the incoming request headers
+        context = request.scope["aws.context"]
+        # https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
+        lambda_context = {
+            "function_name": os.environ[
+                "AWS_LAMBDA_FUNCTION_NAME"
+            ],  # context.function_name,
+            "function_arn": context.invoked_function_arn,
+            "function_memory_size": os.environ[
+                "AWS_LAMBDA_FUNCTION_MEMORY_SIZE"
+            ],  # context.memory_limit_in_mb,
+            "function_request_id": context.aws_request_id,
+        }
+    except KeyError:
+        # when running locally, set mocked values as context
+        lambda_context = {
+            "function_name": "n/a",
+            "function_arn": "n/a",
+            "function_memory_size": "n/a",
+            "function_request_id": str(uuid4()),
+        }
+
+    with logger.contextualize(aws_lambda=lambda_context):
+        response = await call_next(request)
+
+    response.headers["X-Request-ID"] = lambda_context["function_request_id"]
+    return response
